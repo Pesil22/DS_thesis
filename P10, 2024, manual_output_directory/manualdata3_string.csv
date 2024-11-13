@@ -1,0 +1,5 @@
+variable_name,start_day,end_day,category,notes
+manualdata3,2024-11-13T12:20:17.656959,2024-11-14,none,testnotes
+manualdata3,2024-11-14,2024-11-15,none,testnotes
+manualdata3,2024-11-15,2024-11-16,normal,testnotes
+manualdata3,2024-11-16,2024-11-17,many,testnotes
