@@ -1567,4 +1567,4 @@ def submit_binary_data(n_clicks, variable, start_day, end_day, category, notes):
 if __name__ == '__main__':
     # Initialize filename_prefixes from saved files in the output bucket
     filename_prefixes = extract_prefixes_from_saved_files(output_bucket)
-    app.run_server(debug=True, port=8071)
+    app.run_server(debug=True)
