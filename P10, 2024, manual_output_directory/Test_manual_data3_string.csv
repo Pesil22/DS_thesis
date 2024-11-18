@@ -1,0 +1,5 @@
+variable_name,start_day,end_day,category,notes
+Test_manual_data3,2024-11-18T12:19:07.229790,2024-11-19,green,
+Test_manual_data3,2024-11-19,2024-11-20,yellowish green,notet
+Test_manual_data3,2024-11-20,2024-11-21,yellowish green,notee
+Test_manual_data3,2024-11-21,2024-11-22,yellow,notee
