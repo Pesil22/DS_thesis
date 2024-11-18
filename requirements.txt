@@ -2,3 +2,6 @@ dash==2.18.1
 dash-bootstrap-components==0.13.1
 pandas==2.1.4
 plotly==5.24.1
+google-cloud-storage==2.18.2
+gunicorn
+dash-tools
