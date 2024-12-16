@@ -2,9 +2,31 @@
  "cells": [
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "c:\\Users\\peter\\anaconda3\\envs\\ENV_NAME\\lib\\site-packages\\dash_bootstrap_components\\_table.py:5: UserWarning: \n",
+      "The dash_html_components package is deprecated. Please replace\n",
+      "`import dash_html_components as html` with `from dash import html`\n",
+      "  import dash_html_components as html\n"
+     ]
+    },
+    {
+     "ename": "NameError",
+     "evalue": "name 'csv_file' is not defined",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[1;31mNameError\u001b[0m                                 Traceback (most recent call last)",
+      "Cell \u001b[1;32mIn[1], line 121\u001b[0m\n\u001b[0;32m    116\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[38;5;28msorted\u001b[39m(\u001b[38;5;28mlist\u001b[39m(variables))\n\u001b[0;32m    118\u001b[0m \u001b[38;5;66;03m# -------------------- Processing Offline analytical data --------------------\u001b[39;00m\n\u001b[0;32m    119\u001b[0m \n\u001b[0;32m    120\u001b[0m \u001b[38;5;66;03m# Read the CSV without headers and transpose\u001b[39;00m\n\u001b[1;32m--> 121\u001b[0m df_transposed \u001b[38;5;241m=\u001b[39m pd\u001b[38;5;241m.\u001b[39mread_csv(\u001b[43mcsv_file\u001b[49m, sep\u001b[38;5;241m=\u001b[39m\u001b[38;5;124m'\u001b[39m\u001b[38;5;124m;\u001b[39m\u001b[38;5;124m'\u001b[39m, header\u001b[38;5;241m=\u001b[39m\u001b[38;5;28;01mNone\u001b[39;00m)\u001b[38;5;241m.\u001b[39mT\n\u001b[0;32m    123\u001b[0m \u001b[38;5;66;03m# Set the first row as column headers\u001b[39;00m\n\u001b[0;32m    124\u001b[0m df_transposed\u001b[38;5;241m.\u001b[39mcolumns \u001b[38;5;241m=\u001b[39m df_transposed\u001b[38;5;241m.\u001b[39miloc[\u001b[38;5;241m0\u001b[39m]\n",
+      "\u001b[1;31mNameError\u001b[0m: name 'csv_file' is not defined"
+     ]
+    }
+   ],
    "source": [
     "import pandas as pd\n",
     "from datetime import datetime, timedelta\n",
@@ -21,7 +43,7 @@
     "# Path to the directory containing the CSV files\n",
     "directory = \"C:/Users/peter/Desktop/Speciale/DS_thesis/P10. 2024. Pilot dashboard (1)\"\n",
     "\n",
-    "# Path to the processed csv files\n",
+    "# Path to the processed csv files (inline data)\n",
     "output_directory = \"C:/Users/peter/Desktop/Speciale/DS_thesis/P10, 2024, saved files\"\n",
     "\n",
     "# Path to the manual created variables\n",
@@ -1583,7 +1605,7 @@
     "# Run the Dash app\n",
     "if __name__ == '__main__':\n",
     "    filename_prefixes = extract_prefixes_from_saved_files(output_directory)\n",
-    "    app.run_server(debug=True, port=8051)"
+    "    app.run_server(debug=True, port=8052)"
    ]
   }
  ],
@@ -1594,7 +1616,15 @@
    "name": "python3"
   },
   "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
    "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
    "version": "3.10.13"
   }
  },
