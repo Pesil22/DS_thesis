@@ -1,8 +1,0 @@
-variable_name,start_day,end_day,category,notes
-Test_manual_data4,2024-11-18T12:19:07.229790,2024-11-19,no,
-Test_manual_data4,2024-11-19,2024-11-20,no,
-Test_manual_data4,2024-11-20,2024-11-21,no,
-Test_manual_data4,2024-11-21,2024-11-22,yes,
-Test_manual_data4,2024-11-22,2024-11-23,yes,
-Test_manual_data4,2024-11-23,2024-11-24,no,
-Test_manual_data4,2024-11-24,2024-11-25,yes,
