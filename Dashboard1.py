@@ -8,35 +8,35 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-# -------------------- Directories --------------------
+#Directories (add your own directories)
 
-# Path to the directory containing the CSV files
+#Path to the directory containing the CSV files
 directory = "C:/Users/peter/Desktop/Speciale/DS_thesis/P10. 2024. Pilot dashboard (1)"
 
-# Path to the processed csv files (inline data)
+#Path to the processed csv files (inline data)
 output_directory = "C:/Users/peter/Desktop/Speciale/DS_thesis/P10, 2024, saved files"
 
-# Path to the manual created variables
+#Path to the manual created variables
 manual_output_directory = "C:/Users/peter/Desktop/Speciale/DS_thesis/P10, 2024, manual_output_directory"
 
-# Path to csv(offline analytical data)
+#Path to csv(offline analytical data)
 csv_file = "C:/Users/peter/Desktop/Speciale/DS_thesis/P10. 2024. Pilot dashboard (1)/2024-10-04_Results_Cell-Content_Medium_Tech_RS-FV-New.csv"
 
-# -------------------- Configuration --------------------
+#Configuration
 
-# Ensure the output and manual output directories exist
+#Ensure the output and manual output directories exist
 os.makedirs(output_directory, exist_ok=True)
 os.makedirs(manual_output_directory, exist_ok=True)
 
-# Starting date for manual variables (should be changed based on process data start potentially?)
+#Starting date for manual variables (should be changed based on process data start potentially?)
 start_date_str = "2023-12-11"  # Format: YYYY-MM-DD
 start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
 
-# List CSV files in the directory
+#List CSV files in the directory
 def list_csv_files(directory):
     return [f for f in os.listdir(directory) if f.endswith('.csv')]
 
-# Filter files by date
+#Filter files by date
 def filter_files_by_date(files, start_date, end_date):
     filtered_files = []
     for file in files:
@@ -53,14 +53,14 @@ def filter_files_by_date(files, start_date, end_date):
             print(f"Error processing file {file}: {e}")
     return filtered_files
 
-# Function to sanitize filenames
+#Function to sanitize filenames
 def sanitize_filename(filename):
     """
     Sanitize the filename by removing or replacing invalid characters.
     """
     return "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in filename).rstrip()
 
-# Function to get variables by type from manual_output_directory
+#Function to get variables by type from manual_output_directory
 def get_variables_by_type(data_type):
     """
     Retrieve variable names from manual_output_directory based on the data type.
@@ -70,7 +70,7 @@ def get_variables_by_type(data_type):
     variables = [f[:-len(suffix)] for f in files]
     return variables
 
-# Function to extract prefixes from saved files
+#Function to extract prefixes from saved files
 def extract_prefixes_from_saved_files(output_directory):
     prefixes = set()
     for file in os.listdir(output_directory):
@@ -79,13 +79,13 @@ def extract_prefixes_from_saved_files(output_directory):
             prefixes.add(prefix)
     return sorted(list(prefixes))
 
-# Function to remove outliers using the Interquartile Range (IQR) method
+#Function to remove outliers using the Interquartile Range (IQR) method
 def remove_outliers(df, column):
     if column in skip_variables:
         # Skip outlier removal for variables in the skip list
         return df
     
-    # Apply IQR outlier removal for other variables
+    #Apply IQR outlier removal for other variables
     Q1 = df[column].quantile(0.25)
     Q3 = df[column].quantile(0.75)
     IQR = Q3 - Q1
@@ -93,7 +93,7 @@ def remove_outliers(df, column):
     upper_bound = Q3 + 1.5 * IQR
     return df[(df[column] >= lower_bound) & (df[column] <= upper_bound)]
 
-# Function to list manual variables excluding '_binary' and '_string'
+#Function to list manual variables excluding '_binary' and '_string'
 def list_manual_variables(directory):
     variables = []
     for file in os.listdir(directory):
@@ -102,7 +102,7 @@ def list_manual_variables(directory):
             variables.append(var_name)
     return variables
 
-# Function to List Gantt Manual Variables
+#Function to List Gantt Manual Variables
 
 def list_gantt_manual_variables(directory):
     """
@@ -115,23 +115,23 @@ def list_gantt_manual_variables(directory):
             variables.add(var_name)
     return sorted(list(variables))
 
-# -------------------- Processing Offline analytical data --------------------
+#Processing Offline analytical data
 
-# Read the CSV without headers and transpose
+#Read the CSV without headers and transpose
 df_transposed = pd.read_csv(csv_file, sep=';', header=None).T
 
-# Set the first row as column headers
+#Set the first row as column headers
 df_transposed.columns = df_transposed.iloc[0]
 df_transposed = df_transposed[1:].reset_index(drop=True)
 
-# Convert all columns to string to ensure consistency
+#Convert all columns to string to ensure consistency
 df_transposed = df_transposed.astype(str)
 
-# Split the DataFrame into table1 and table2
+#Split the DataFrame into table1 and table2
 table1 = df_transposed.iloc[:, 1:20].copy().reset_index(drop=True)
 table2 = df_transposed.iloc[:, 21:35].copy().reset_index(drop=True)
 
-# Function to add DateTime column
+#Function to add DateTime column
 def add_datetime_column(table, start_date):
     if 'Sample Day' in table.columns:
         sample_day_col = table['Sample Day'].str.replace(',', '.').astype(float)
@@ -143,49 +143,49 @@ def add_datetime_column(table, start_date):
         print("Error: 'Sample Day' column not found in the table.")
     return table
 
-# Apply the function to both tables
+#Apply the function to both tables
 table1 = add_datetime_column(table1, start_date)
 table2 = add_datetime_column(table2, start_date)
 
-# Convert 'DateTime' to datetime objects
+#Convert 'DateTime' to datetime objects
 table1['DateTime'] = pd.to_datetime(table1['DateTime'], format='%d-%m-%Y %H:%M:%S')
 table2['DateTime'] = pd.to_datetime(table2['DateTime'], format='%d-%m-%Y %H:%M:%S')
 
-# Exclude columns we don't want to process
+#Exclude columns we don't want to process
 exclude_columns = ['Sample Day', 'SAMPLE I.D', 'DateTime']
 
-# Process numeric columns in table1
+#Process numeric columns in table1
 data_columns_table1 = [col for col in table1.columns if col not in exclude_columns and pd.notnull(col)]
 for col in data_columns_table1:
     table1[col] = table1[col].str.replace(',', '.')
     table1[col] = pd.to_numeric(table1[col], errors='coerce')
 
-# Process numeric columns in table2
+#Process numeric columns in table2
 data_columns_table2 = [col for col in table2.columns if col not in exclude_columns and pd.notnull(col)]
 for col in data_columns_table2:
     table2[col] = table2[col].str.replace(',', '.')
     table2[col] = pd.to_numeric(table2[col], errors='coerce')
 
-# Now select numeric columns
+#Now select numeric columns
 numeric_columns_table1 = table1.select_dtypes(include=['float64', 'int64'])
 numeric_columns_table2 = table2.select_dtypes(include=['float64', 'int64'])
 
-# Get the list of columns for dropdown options
+#Get the list of columns for dropdown options
 # We prefix the column names with the table name to avoid duplicates
 columns_table1_prefixed = [f"Table1: {col}" for col in numeric_columns_table1.columns if col not in exclude_columns]
 columns_table2_prefixed = [f"Table2: {col}" for col in numeric_columns_table2.columns if col not in exclude_columns]
 
-# Combine all columns
+#Combine all columns
 all_columns = columns_table1_prefixed + columns_table2_prefixed
 
-# Create a mapping from display names to actual column names and tables
+#Create a mapping from display names to actual column names and tables
 column_mapping = {}
 for display_name, col_name in zip(columns_table1_prefixed, numeric_columns_table1.columns):
     column_mapping[display_name] = ('table1', col_name)
 for display_name, col_name in zip(columns_table2_prefixed, numeric_columns_table2.columns):
     column_mapping[display_name] = ('table2', col_name)
 
-# List of variable names to filter
+#List of variable names to filter
 variable_names = [
     "AI Values_78TT001 - Analog input",
     "AI Values_78TT002 - Analog input",
@@ -210,7 +210,7 @@ variable_names = [
     "AI Values_78PT001 - Analog input",
 ]
 
-# Unit mappings for variables
+#Unit mappings for variables
 variable_units = {
     "AI Values_78TT001 - Analog input": "Temperature (°C)",
     "AI Values_78TT002 - Analog input": "Temperature (°C)",
@@ -235,7 +235,7 @@ variable_units = {
     "AI Values_78PT001 - Analog input": "Pressure (bar)",
 }
 
-# Display names for variables
+#Display names for variables
 variable_display_names = {
     "AI Values_78TT001 - Analog input": "Cooling circuit, before PBR (°C)",
     "AI Values_78TT002 - Analog input": "Before the PBR (°C)",
@@ -260,7 +260,7 @@ variable_display_names = {
     "AI Values_78PT001 - Analog input": "Cooling circuit, before PBR Pressure (bar)",
 }
 
-# New variable units for offline analytics
+#New variable units for offline analytics
 new_variable_units = {
     "Table1: % CARBOHYDRATE": "%",
     "Table1: % PROTEIN": "%",
@@ -291,7 +291,7 @@ new_variable_units = {
     "Table2: Lead": "mg/kg",
 }
 
-# List of variables to skip for outlier removal
+#List of variables to skip for outlier removal
 skip_variables = [
     "30P001.HMI.DATA_2",  # Binary variable
     "30P002.HMI.DATA_2",  # Binary variable
@@ -301,13 +301,13 @@ skip_variables = [
     "AO Values_10R003",   # Percentage variable 
 ]
 
-# Dictionary to store merged DataFrames for all variables
+#Dictionary to store merged DataFrames for all variables
 merged_dataframes = {var: pd.DataFrame() for var in variable_names}
 
 # Store filename prefixes entered by the user
 filename_prefixes = []
 
-# Function to process a single CSV file and extract variables into DataFrames
+#Function to process a single CSV file and extract variables into DataFrames
 def process_csv_file(directory, csv_file, variable_names):
     df = pd.read_csv(os.path.join(directory, csv_file), delimiter=';', on_bad_lines='skip')  
     dataframes = {}
@@ -318,32 +318,32 @@ def process_csv_file(directory, csv_file, variable_names):
             print(f"Extracted {var_name} with {len(filtered_df)} rows.")
     return dataframes
 
-# Initialize the Dash app with Bootstrap stylesheet
+#Initialize the Dash app with Bootstrap stylesheet
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = "Algiecel Pilot Dashboard"
 
-# Function to get manual variable options
+#Function to get manual variable options
 def get_manual_variable_options():
     manual_vars = list_manual_variables(manual_output_directory)
     return [{'label': var, 'value': var} for var in manual_vars]
 
-# Layout of the Dash app
+#Layout of the Dash app
 app.layout = dbc.Container([
     # Hidden stores to keep track of variables and data entries
     dcc.Store(id='variables-store', data={}),  # Stores variables with their attributes
     dcc.Store(id='data-entries-store', data=[]),  # Stores data entries
     dcc.Store(id='current-graph-data', data=[]),  # Stores graph data for export
 
-    dbc.Row([], style={'height': '5px'}),  # Halved gap between the top and the content
+    dbc.Row([], style={'height': '5px'}),  
 
     dbc.Row([
-        # Left Column: Batch & Variable Selection, ButtonGroup for Toggles, Define Batch, Create Variable, and Data Entry
+        #Left Column: Batch & Variable Selection, ButtonGroup for Toggles, Define Batch, Create Variable, and Data Entry
         dbc.Col([
-            # Batch & Variable Selection Section
+            #Batch & Variable Selection Section
             dbc.Card([
                 dbc.CardHeader(html.H4('Batch & Variable Selection')),
                 dbc.CardBody([
-                    # Prefix Dropdown
+                    #Prefix Dropdown
                     dbc.FormGroup([
                         dbc.Label('Select Batch'),
                         dcc.Dropdown(
@@ -352,7 +352,7 @@ app.layout = dbc.Container([
                             multi=True
                         ),
                     ]),
-                    # Variable Dropdown (process)
+                    #Variable Dropdown (process)
                     dbc.FormGroup([
                         dbc.Label('Select Process Data Variable(s)'),
                         dcc.Dropdown(
@@ -361,7 +361,7 @@ app.layout = dbc.Container([
                             multi=True
                         ),
                     ]),
-                    # Variables Dropdown (analytics)
+                    #Variables Dropdown (analytics)
                     dbc.FormGroup([
                         dbc.Label('Select Offline Data Variable(s)'),
                         dcc.Dropdown(
@@ -371,7 +371,7 @@ app.layout = dbc.Container([
                             multi=True
                         ),
                     ]),
-                    # Variable Dropdown (manual)
+                    #Variable Dropdown (manual)
                     dbc.FormGroup([
                         dbc.Label('Select Manual Variable(s)'),
                         dcc.Dropdown(
@@ -381,7 +381,7 @@ app.layout = dbc.Container([
                             multi=True
                         ),
                     ]),
-                    # Time Mode Switch
+                    #Time Mode Switch
                     dbc.FormGroup([
                         dbc.Label('Time Mode'),
                         dbc.RadioItems(
@@ -397,32 +397,32 @@ app.layout = dbc.Container([
                 ])
             ], className='mb-2'),  
 
-            # ButtonGroup for Toggling Sections
+            #ButtonGroup for Toggling Sections
             dbc.ButtonGroup([
                 dbc.Button(
                     "Show Define Batch",
                     id='toggle-define-batch-button',
-                    color='primary',  # Changed from 'success' to 'primary'
+                    color='primary',  
                     className='mr-1',  
                     n_clicks=0,
                 ),
                 dbc.Button(
                     "Show Create Variable",
                     id='toggle-create-variable-button',
-                    color='primary',  # Changed from 'success' to 'primary'
+                    color='primary',  
                     className='mr-1',  
                     n_clicks=0,
                 ),
                 dbc.Button(
                     "Show Data Entry",
                     id='toggle-data-entry-button',
-                    color='primary',  # Changed from 'success' to 'primary'
+                    color='primary',  
                     className='mr-1',  
                     n_clicks=0,
                 ),
             ], className='mb-1'),  
 
-            # Define Batch Section (Initially Hidden)
+            #Define Batch Section (Initially Hidden)
             dbc.Card([
                 dbc.CardHeader(html.H3('Define Batch')),
                 dbc.CardBody([
@@ -450,7 +450,7 @@ app.layout = dbc.Container([
                 ])
             ], id='define-batch-card', className='mb-2', style={'display': 'none'}),  
 
-            # Create Variable Section (Initially Hidden)
+            #Create Variable Section (Initially Hidden)
             dbc.Card([
                 dbc.CardHeader(html.H4('Create Variable')),
                 dbc.CardBody([
@@ -480,12 +480,12 @@ app.layout = dbc.Container([
                 ])
             ], id='create-variable-card', className='mb-2', style={'display': 'none'}),  
 
-            # Data Entry Tabs Section (Initially Hidden)
+            #Data Entry Tabs Section (Initially Hidden)
             dbc.Card([
                 dbc.CardHeader(html.H4('Data Entry')),
                 dbc.CardBody([
                     dbc.Tabs([
-                        # 1. Float Data Tab
+                        #1. Float Data Tab
                         dbc.Tab(label="Add Float Data", children=[
                             dbc.FormGroup([
                                 dbc.Label('Select Variable'),
@@ -538,7 +538,7 @@ app.layout = dbc.Container([
                             html.Div(id='float-submit-message', className='mt-1'),  
                         ]),
 
-                        # 2. Percentage Data Tab
+                        #2. Percentage Data Tab
                         dbc.Tab(label="Add Percentage Data", children=[
                             dbc.FormGroup([
                                 dbc.Label('Select Variable'),
@@ -579,7 +579,7 @@ app.layout = dbc.Container([
                             html.Div(id='percentage-submit-message', className='mt-1'),  
                         ]),
 
-                        # 3. String Data Tab
+                        #3. String Data Tab
                         dbc.Tab(label="Add String Data", children=[
                             dbc.FormGroup([
                                 dbc.Label('Select Variable'),
@@ -681,12 +681,12 @@ app.layout = dbc.Container([
                             dbc.Button('Submit Binary Data', id='submit-binary-button', color='primary', className='mt-1'),  
                             html.Div(id='binary-submit-message', className='mt-1'),  
                         ]),
-                    ])  # End of Tabs
+                    ])  #End of Tabs
                 ])
             ], id='data-entry-card', className='mb-2', style={'display': 'none'}),  
         ], width=3),  
 
-        # Center Column: Variable Graph and Gantt Chart
+        #Center Column: Variable Graph and Gantt Chart
         dbc.Col([
             # Variable Graph Section
             dbc.Card([
@@ -698,7 +698,7 @@ app.layout = dbc.Container([
                 ])
             ], className='mb-2'),  
 
-            # Gantt Chart Section
+            #Gantt Chart Section
             dbc.Card([
                 dbc.CardHeader(html.H4('Gantt Chart')),
                 dbc.CardBody([
@@ -719,7 +719,7 @@ app.layout = dbc.Container([
     ])
 ], fluid=True, style={'backgroundColor': '#095040'})  # background color
 
-# Callback to toggle the visibility and color of the Define Batch section
+#Callback to toggle the visibility and color of the Define Batch section
 @app.callback(
     Output('define-batch-card', 'style'),
     Output('toggle-define-batch-button', 'children'),
@@ -734,15 +734,15 @@ def toggle_define_batch(n_clicks, current_style):
         # Show the Define Batch card
         new_style = {'display': 'block'}
         button_text = "Hide Define Batch"
-        button_color = "secondary"  # Changed from 'danger' to 'secondary'
+        button_color = "secondary"  
     else:
         # Hide the Define Batch card
         new_style = {'display': 'none'}
         button_text = "Show Define Batch"
-        button_color = "primary"  # Changed from 'success' to 'primary'
+        button_color = "primary"  
     return new_style, button_text, button_color
 
-# Callback to toggle the visibility and color of the Create Variable section
+#Callback to toggle the visibility and color of the Create Variable section
 @app.callback(
     Output('create-variable-card', 'style'),
     Output('toggle-create-variable-button', 'children'),
@@ -757,15 +757,16 @@ def toggle_create_variable(n_clicks, current_style):
         # Show the Create Variable card
         new_style = {'display': 'block'}
         button_text = "Hide Create Variable"
-        button_color = "secondary"  # Changed from 'danger' to 'secondary'
+        button_color = "secondary"  
     else:
         # Hide the Create Variable card
         new_style = {'display': 'none'}
         button_text = "Show Create Variable"
-        button_color = "primary"  # Changed from 'success' to 'primary'
+        button_color = "primary"  
     return new_style, button_text, button_color
 
-# Callback to toggle the visibility and color of the Data Entry section
+#Callback to toggle the visibility and color of the Data Entry section
+
 @app.callback(
     Output('data-entry-card', 'style'),
     Output('toggle-data-entry-button', 'children'),
@@ -780,17 +781,17 @@ def toggle_data_entry(n_clicks, current_style):
         # Show the Data Entry card
         new_style = {'display': 'block'}
         button_text = "Hide Data Entry"
-        button_color = "secondary"  # Changed from 'danger' to 'secondary'
+        button_color = "secondary"  
     else:
         # Hide the Data Entry card
         new_style = {'display': 'none'}
         button_text = "Show Data Entry"
-        button_color = "primary"  # Changed from 'success' to 'primary'
+        button_color = "primary"  
     return new_style, button_text, button_color
 
-# -------------------- Callbacks --------------------
+#Callbacks
 
-# Callback to handle file selection, processing, and saving 
+#Callback to handle file selection, processing, and saving 
 @app.callback(
     Output('file-list', 'children'),
     Output('file-save-status', 'children'),
@@ -808,14 +809,14 @@ def update_file_list(n_clicks, start_date, end_date, filename_prefix):
         except Exception as e:
             return f"Invalid date format: {e}", "", []
 
-        # List CSV files and process them (existing logic)
+        #List CSV files and process them (existing logic)
         csv_files = list_csv_files(directory)
         selected_files = filter_files_by_date(csv_files, start_date_dt, end_date_dt)
 
         if not selected_files:
             return "No files selected.", "", []
 
-        # Process and save files (existing logic)
+        #Process and save files (existing logic)
         os.makedirs(output_directory, exist_ok=True)
         global merged_dataframes
         merged_dataframes = {var: pd.DataFrame() for var in variable_names}
@@ -837,26 +838,26 @@ def update_file_list(n_clicks, start_date, end_date, filename_prefix):
                 saved_files.append(output_file)
                 print(f"Saved {output_file}")
 
-        # Ensure filename_prefixes is updated
+        #Ensure filename_prefixes is updated
         if filename_prefix not in filename_prefixes:
             filename_prefixes.append(filename_prefix)
 
-        # Update prefix options
+        #Update prefix options
         all_prefixes = sorted(list(set(filename_prefixes + extract_prefixes_from_saved_files(output_directory))))
         prefix_options = [{'label': prefix, 'value': prefix} for prefix in all_prefixes]
 
-        # File display
+        #File display
         file_display = f"Selected Files:\n" + "\n".join(selected_files)
         # Save status
         save_status = f"Files processed and saved with prefix: {filename_prefix}. Saved {len(saved_files)} files."
 
         return file_display, save_status, prefix_options
 
-    # Return default values when no action is taken
+    #Return default values when no action is taken
     return "No files selected.", "", [{'label': prefix, 'value': prefix} for prefix in extract_prefixes_from_saved_files(output_directory)]
 
 
-# Callback to update the variable dropdown based on selected prefixes 
+#Callback to update the variable dropdown based on selected prefixes 
 @app.callback(
     Output('variable-dropdown', 'options'),
     [Input('prefix-dropdown', 'value')]
@@ -878,7 +879,7 @@ def update_variable_dropdown(selected_prefixes):
     return []
 
 
-# Combined Callback to refresh manual variable dropdown options
+#Combined Callback to refresh manual variable dropdown options
 @app.callback(
     Output('manual-variable-dropdown', 'options'),
     [
@@ -890,12 +891,12 @@ def update_variable_dropdown(selected_prefixes):
     ]
 )
 def refresh_manual_variable_dropdown(*args):
-    # Regardless of which button was clicked, refresh the manual variables
+    #Regardless of which button was clicked, refresh the manual variables
     manual_vars = list_manual_variables(manual_output_directory)
     return [{'label': var, 'value': var} for var in manual_vars]
 
 
-# Callback to update the variable dropdowns for each data type dynamically
+#Callback to update the variable dropdowns for each data type dynamically
 @app.callback(
     [
         Output('float-variable-dropdown', 'options'),
@@ -923,7 +924,7 @@ def update_variable_dropdowns(*args):
     return float_options, percentage_options, string_options, binary_options
 
 
-# Callback to handle Y-axis scaling and downsample data
+#Callback to handle Y-axis scaling and downsample data
 @app.callback(
     [Output('variable-graph', 'figure'),
      Output('current-graph-data', 'data')],  # Store the graph data for export
@@ -978,7 +979,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
                 df_resampled['Variable'] = var_name
                 all_data = pd.concat([all_data, df_resampled], ignore_index=True)
 
-    # Process offline analytical variables (excluded from export)
+    #Process offline analytical variables (excluded from export)
     for display_name in new_variables:
         if display_name not in column_mapping:
             continue  # Skip if mapping is not defined
@@ -1005,49 +1006,49 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
         unit = new_variable_units.get(display_name, 'Value')  # Replace 'Value' with a default if needed
         variable_unit_map[display_name] = unit
 
-    # Process Manual Variables float and percentage
+    #Process Manual Variables float and percentage
     for manual_var in manual_variables:
         file_path = os.path.join(manual_output_directory, f"{manual_var}.csv")
         if os.path.exists(file_path):
             try:
                 df_manual = pd.read_csv(file_path)
 
-                # Ensure required columns exist
+                #Ensure required columns exist
                 required_columns = {'variable_name', 'value', 'units', 'days_since_inoculation'}
                 if not all(col in df_manual.columns for col in required_columns):
                     print(f"One or more required columns missing in {file_path}. Skipping.")
                     continue
 
-                # Skip if variable name ends with '_binary' or '_string'
+                #Skip if variable name ends with '_binary' or '_string'
                 if manual_var.endswith('_binary') or manual_var.endswith('_string'):
                     continue
 
-                # Add DateTime column
+                #Add DateTime column
                 df_manual['days_since_inoculation'] = df_manual['days_since_inoculation'].astype(int)
                 df_manual['DateTime'] = start_date + pd.to_timedelta(df_manual['days_since_inoculation'], unit='d') + pd.to_timedelta('00:00:00')
                 df_manual['DateTime'] = df_manual['DateTime'].dt.strftime('%d-%m-%Y %H:%M:%S')
                 df_manual['DateTime'] = pd.to_datetime(df_manual['DateTime'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
 
-                # Drop rows with invalid DateTime
+                #Drop rows with invalid DateTime
                 df_manual = df_manual.dropna(subset=['DateTime'])
 
-                # Assign Variable name
+                #Assign Variable name
                 df_manual['Variable'] = manual_var
 
-                # Rename columns to match existing structure
+                #Rename columns to match existing structure
                 df_manual.rename(columns={'DateTime': 'TimeString', 'value': 'VarValue'}, inplace=True)
 
-                # Assign units and notes
+                #Assign units and notes
                 df_manual['units'] = df_manual['units'].fillna('Value')  # Ensure units are present
                 df_manual['notes'] = df_manual['notes'].fillna('')      # Ensure notes are present
 
-                # Assign units to variable_unit_map
+                #Assign units to variable_unit_map
                 variable_unit_map[manual_var] = df_manual['units'].iloc[0] if not df_manual['units'].isnull().all() else 'Value'
 
-                # Ensure ElapsedTime is calculated
+                #Ensure ElapsedTime is calculated
                 df_manual['ElapsedTime'] = (df_manual['TimeString'] - df_manual['TimeString'].min()).dt.total_seconds() / 60
 
-                # Include 'units' and 'notes' in all_data
+                #Include 'units' and 'notes' in all_data
                 all_data = pd.concat([
                     all_data,
                     df_manual[['TimeString', 'VarValue', 'ElapsedTime', 'Variable', 'units', 'notes']]
@@ -1056,7 +1057,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
                 print(f"Error processing manual variable {manual_var}: {e}")
                 continue
             
-    # Sort all_data by Variable and TimeString to ensure chronological plotting lines
+    #Sort all_data by Variable and TimeString to ensure chronological plotting lines
     if not all_data.empty:
         all_data = all_data.sort_values(by=['Variable', 'TimeString'])
 
@@ -1070,7 +1071,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
             x_label = 'Time (Absolute)'
             x_type = "date"
 
-        # Prepare data for export (only Process Data Variables for now)
+        #Prepare data for export (only Process Data Variables for now)
         export_data = all_data.copy()
         export_data = export_data[export_data['Variable'].isin([var.split('_',1)[1] for var in selected_variables])]
         if time_mode == 'absolute':
@@ -1080,15 +1081,15 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
             export_data = export_data[['ElapsedTime', 'Variable', 'VarValue']]
             export_data.rename(columns={'ElapsedTime': 'Elapsed Time (minutes)'}, inplace=True)
 
-        # Create the figure
+        #Create the figure
         fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-        # Track used y-axes
+        #Track used y-axes
         yaxes_used = {}
 
-        # Iterate over each variable to create traces
+        #Iterate over each variable to create traces
         for var_name, df_group in all_data.groupby('Variable'):
-            # Get the display name from the dictionary, default to the raw variable name if not found
+            #Get the display name from the dictionary, default to the raw variable name if not found
             display_name = variable_display_names.get(var_name, var_name)
             yaxis_title = variable_unit_map.get(var_name, 'Value')
 
@@ -1099,7 +1100,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
             secondary_y = yaxes_used[yaxis_title] > 1
 
             if var_name in manual_variables:
-                # Plot Manual Variables (Float and Percentage)
+                #Plot Manual Variables (Float and Percentage)
                 fig.add_trace(
                     go.Scatter(
                         x=df_group[x_axis],
@@ -1119,7 +1120,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
                     secondary_y=secondary_y
                 )
             elif var_name in new_variables:
-                # Plot Offline Analytical Data Variables as Bar Charts
+                #Plot Offline Analytical Data Variables as Bar Charts
                 fig.add_trace(
                     go.Bar(
                         x=df_group[x_axis],
@@ -1131,7 +1132,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
                     secondary_y=secondary_y
                 )
             else:
-                # Plot Process Data Variables as Line Charts
+                #Plot Process Data Variables as Line Charts
                 fig.add_trace(
                     go.Scatter(
                         x=df_group[x_axis],
@@ -1162,7 +1163,7 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
-                y=1.02,        # Adjust this value as needed to position the legend above the graph
+                y=1.02,        
                 xanchor="center",
                 x=0.5
             )
@@ -1185,28 +1186,28 @@ def update_graph(selected_variables, new_variables, manual_variables, time_mode)
 )
 def download_graph_data(n_clicks, graph_data):
     if n_clicks and graph_data:
-        # Convert the list of records back to a DataFrame
+        #Convert the list of records back to a DataFrame
         df = pd.DataFrame(graph_data)
         
-        # Optional: Reorder columns or format as needed
-        # For example, if using absolute time:
+        #Optional: Reorder columns or format as needed
+        #For example, if using absolute time:
         if 'Time' in df.columns:
             df = df[['Time', 'Variable', 'VarValue']]
         elif 'Elapsed Time (minutes)' in df.columns:
             df = df[['Elapsed Time (minutes)', 'Variable', 'VarValue']]
 
-        # Optional: Add a timestamp to the filename
+        #Optional: Add a timestamp to the filename
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"exported_graph_data_{now}.csv"
         
-        # Convert DataFrame to CSV
+        #Convert DataFrame to CSV
         return dcc.send_data_frame(df.to_csv, filename, index=False)
     return dash.no_update
 
 
-# -------------------- Callbacks for Gantt Chart --------------------
+#Callbacks for Gantt Chart
 
-# Callback to refresh Gantt variable dropdown options
+#Callback to refresh Gantt variable dropdown options
 @app.callback(
     Output('gantt-variable-dropdown', 'options'),
     [
@@ -1228,14 +1229,14 @@ def refresh_gantt_variable_dropdown(*args):
 )
 def update_gantt_chart(selected_vars):
     if not selected_vars:
-        # Return an empty figure if no variables are selected
+        #Return an empty figure if no variables are selected
         return go.Figure()
 
     all_entries = []
 
-    # Iterate over each selected variable
+    #Iterate over each selected variable
     for var in selected_vars:
-        # Check both binary and string CSV files for each variable
+        #Check both binary and string CSV files for each variable
         for file_suffix in ['_binary.csv', '_string.csv']:
             file_path = os.path.join(manual_output_directory, f"{var}{file_suffix}")
             if os.path.exists(file_path):
@@ -1264,24 +1265,24 @@ def update_gantt_chart(selected_vars):
         # Return an empty figure if there are no entries
         return go.Figure()
 
-    # Create a DataFrame from all entries
+    #Create a DataFrame from all entries
     gantt_df = pd.DataFrame(all_entries)
 
-    # Convert 'Start' and 'Finish' to datetime objects
+    #Convert 'Start' and 'Finish' to datetime objects
     gantt_df['Start'] = pd.to_datetime(gantt_df['Start'], format='%Y-%m-%d', errors='coerce')
     gantt_df['Finish'] = pd.to_datetime(gantt_df['Finish'], format='%Y-%m-%d', errors='coerce')
 
-    # Drop rows with invalid dates
+    #Drop rows with invalid dates
     gantt_df = gantt_df.dropna(subset=['Start', 'Finish'])
 
     if gantt_df.empty:
         # Return an empty figure if the DataFrame is empty after dropping invalid dates
         return go.Figure()
 
-    # Optional: Create a 'Task' column if you want a combined name
+    #Optional: Create a 'Task' column if you want a combined name
     gantt_df['Task'] = gantt_df['Variable'] + ": " + gantt_df['Category']
 
-    # Create the Gantt chart using Plotly Express
+    #Create the Gantt chart using Plotly Express
     fig = px.timeline(
         gantt_df, 
         x_start="Start", 
@@ -1291,12 +1292,12 @@ def update_gantt_chart(selected_vars):
         title="Gantt Chart", 
         labels={"Category": "Category"},
         hover_data={
-            "Variable": True,  # Include 'Variable' in hover data
-            "Notes": True      # Include 'Notes' in hover data
+            "Variable": True,  
+            "Notes": True      
         }
     )
 
-    # Update the hover template to display 'Variable' and handle 'Notes' properly
+    #Update the hover template to display 'Variable' and handle 'Notes' properly
     fig.update_traces(
         hovertemplate=
             '<b>%{customdata[0]}</b><br>' +  # Display 'Variable' in bold
@@ -1304,10 +1305,10 @@ def update_gantt_chart(selected_vars):
             'Start: %{x|%Y-%m-%d}<br>' +   # Format the start date
             'Finish: %{customdata[1]|%Y-%m-%d}<br>' +  # Format the finish date
             'Notes: %{customdata[2]}<extra></extra>',    # Display 'Notes'
-        customdata=gantt_df[['Variable', 'Finish', 'Notes']].values  # Pass 'Variable', 'Finish', and 'Notes' to hover
+        customdata=gantt_df[['Variable', 'Finish', 'Notes']].values  
     )
 
-    # Update layout settings for better appearance
+    #Update layout settings for better appearance
     fig.update_layout(
         xaxis_title='Date',
         yaxis_title='Category',
@@ -1319,7 +1320,7 @@ def update_gantt_chart(selected_vars):
     return fig
 
 
-# -------------------- Callback for Creating Variables --------------------
+#Callback for creating variables
 
 @app.callback(
     Output('create-variable-message', 'children'),
@@ -1329,14 +1330,14 @@ def update_gantt_chart(selected_vars):
 )
 def create_variable(n_clicks, variable_name, data_type):
     if n_clicks:
-        # Validate inputs
+        #Validate inputs
         if not variable_name or not data_type:
             return dbc.Alert("Please provide both Variable Name and Data Type.", color="danger")
         
-        # Sanitize the variable name for filename usage
+        #Sanitize the variable name for filename usage
         sanitized_name = sanitize_filename(variable_name)
         
-        # Define the filename based on data type
+        #Define the filename based on data type
         if data_type in ['float', 'percentage']:
             filename = f"{sanitized_name}_{data_type}.csv"
             columns = ['variable_name', 'value', 'units', 'notes', 'days_since_inoculation']
@@ -1348,15 +1349,15 @@ def create_variable(n_clicks, variable_name, data_type):
         
         file_path = os.path.join(manual_output_directory, filename)
         
-        # Check if file already exists
+        #Check if file already exists
         if os.path.exists(file_path):
             return dbc.Alert(f"A template named '{filename}' already exists.", color="warning")
         
-        # Create an empty DataFrame with the specified columns
+        #Create an empty DataFrame with the specified columns
         df_empty = pd.DataFrame(columns=columns)
         
         try:
-            # Save the empty DataFrame to CSV in the manual output directory
+            #Save the empty DataFrame to CSV in the manual output directory
             df_empty.to_csv(file_path, index=False)
             return dbc.Alert(f"Variable '{variable_name}' of type '{data_type}' created successfully and saved to manual output directory.", color="success")
         except Exception as e:
@@ -1364,9 +1365,9 @@ def create_variable(n_clicks, variable_name, data_type):
     
     return ""
 
-# -------------------- Callbacks for Adding Data --------------------
+#Callbacks for Adding Data
 
-# Callback to handle Float Data submission
+#Callback to handle Float Data submission
 @app.callback(
     Output('float-submit-message', 'children'),
     [Input('submit-float-button', 'n_clicks')],
@@ -1380,17 +1381,17 @@ def create_variable(n_clicks, variable_name, data_type):
 )
 def submit_float_data(n_clicks, variable, value, units, days, notes):
     if n_clicks:
-        # Validation
+        #Validation
         if not all([variable, value is not None, units, days is not None]):
             return dbc.Alert("Please fill out all required fields for Float Data.", color="danger")
         try:
-            # Ensure value and days are numeric
+            #Ensure value and days are numeric
             value = float(value)
             days = int(days)
         except ValueError:
             return dbc.Alert("Value must be a number and Days Since Inoculation must be an integer.", color="danger")
         
-        # Prepare the data row
+        #Prepare the data row
         new_row = {
             'variable_name': variable,
             'value': value,
@@ -1399,16 +1400,16 @@ def submit_float_data(n_clicks, variable, value, units, days, notes):
             'days_since_inoculation': days
         }
 
-        # Append to the corresponding CSV
+        #Append to the corresponding CSV
         filename = f"{sanitize_filename(variable)}_float.csv"
         file_path = os.path.join(manual_output_directory, filename)
 
         try:
             if not os.path.exists(file_path):
-                # If the file doesn't exist, create it with headers
+                #If the file doesn't exist, create it with headers
                 pd.DataFrame([new_row]).to_csv(file_path, index=False)
             else:
-                # Append without headers
+                #Append without headers
                 pd.DataFrame([new_row]).to_csv(file_path, mode='a', header=False, index=False)
             return dbc.Alert("Float data submitted successfully.", color="success")
         except Exception as e:
@@ -1416,7 +1417,7 @@ def submit_float_data(n_clicks, variable, value, units, days, notes):
     return ""
 
 
-# Callback to handle Percentage Data submission
+#Callback to handle Percentage Data submission
 @app.callback(
     Output('percentage-submit-message', 'children'),
     [Input('submit-percentage-button', 'n_clicks')],
@@ -1433,7 +1434,7 @@ def submit_percentage_data(n_clicks, variable, value, days, notes):
         if not all([variable, value is not None, days is not None]):
             return dbc.Alert("Please fill out all required fields for Percentage Data.", color="danger")
         try:
-            # Ensure value is between 0 and 100
+            #Ensure value is between 0 and 100
             value = float(value)
             if not (0 <= value <= 100):
                 return dbc.Alert("Percentage value must be between 0 and 100.", color="danger")
@@ -1445,12 +1446,12 @@ def submit_percentage_data(n_clicks, variable, value, days, notes):
         new_row = {
             'variable_name': variable,
             'value': value,
-            'units': '%',  # To automatically assign '%' 
+            'units': '%',   
             'notes': notes if notes else '',
             'days_since_inoculation': days
         }
 
-        # Append to the corresponding CSV
+        #Append to the corresponding CSV
         filename = f"{sanitize_filename(variable)}_percentage.csv"
         file_path = os.path.join(manual_output_directory, filename)
 
@@ -1481,7 +1482,7 @@ def submit_percentage_data(n_clicks, variable, value, days, notes):
 )
 def submit_string_data(n_clicks, variable, start_day, end_day, category, notes):
     if n_clicks:
-        # Validation
+        #Validation
         if not all([variable, start_day, end_day, category]):
             return dbc.Alert("Please fill out all required fields for String Data.", color="danger")
         try:
@@ -1493,7 +1494,7 @@ def submit_string_data(n_clicks, variable, start_day, end_day, category, notes):
         except ValueError:
             return dbc.Alert("Invalid dates provided.", color="danger")
         
-        # Prepare the data row
+        #Prepare the data row
         new_row = {
             'variable_name': variable,
             'start_day': start_day,
@@ -1502,7 +1503,7 @@ def submit_string_data(n_clicks, variable, start_day, end_day, category, notes):
             'notes': notes if notes else ''
         }
 
-        # Append to the corresponding CSV
+        #Append to the corresponding CSV
         filename = f"{sanitize_filename(variable)}_string.csv"
         file_path = os.path.join(manual_output_directory, filename)
 
@@ -1533,7 +1534,7 @@ def submit_string_data(n_clicks, variable, start_day, end_day, category, notes):
 )
 def submit_binary_data(n_clicks, variable, start_day, end_day, category, notes):
     if n_clicks:
-        # Validation
+        #Validation
         if not all([variable, start_day, end_day, category]):
             return dbc.Alert("Please fill out all required fields for Binary Data.", color="danger")
         try:
@@ -1545,7 +1546,7 @@ def submit_binary_data(n_clicks, variable, start_day, end_day, category, notes):
         except ValueError:
             return dbc.Alert("Invalid dates provided.", color="danger")
         
-        # Prepare the data row
+        #Prepare the data row
         new_row = {
             'variable_name': variable,
             'start_day': start_day,
@@ -1554,7 +1555,7 @@ def submit_binary_data(n_clicks, variable, start_day, end_day, category, notes):
             'notes': notes if notes else ''
         }
 
-        # Append to the corresponding CSV
+        #Append to the corresponding CSV
         filename = f"{sanitize_filename(variable)}_binary.csv"
         file_path = os.path.join(manual_output_directory, filename)
 
@@ -1570,9 +1571,9 @@ def submit_binary_data(n_clicks, variable, start_day, end_day, category, notes):
             return dbc.Alert(f"Error submitting binary data: {e}", color="danger")
     return ""
 
-# -------------------- Run the Dash App --------------------
+#Run dash app
 
-# Run the Dash app
+#Run the Dash app
 if __name__ == '__main__':
     filename_prefixes = extract_prefixes_from_saved_files(output_directory)
     app.run_server(debug=True, port=8051)
